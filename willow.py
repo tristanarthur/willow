@@ -54,9 +54,7 @@ class Willow:
     def read_terminal_output(self, dt: int, _: typing.List[event.Event]) -> None:
         self.terminal_output.extend(self.terminal.read_all())
 
-    def send_input_to_terminal(
-        self, _: int, events: typing.List[event.Event]
-    ) -> None:
+    def send_input_to_terminal(self, _: int, events: typing.List[event.Event]) -> None:
         for event in events:
             if event.type == KEYDOWN:
                 self.terminal.write(event.unicode)

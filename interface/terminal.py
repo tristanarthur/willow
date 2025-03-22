@@ -3,6 +3,41 @@ import typing
 from interface.actions import InterfaceAction
 
 
+class Cursor:
+    def __init__(
+        self,
+        position: typing.Tuple[int, int],
+        size: typing.Tuple[int, int],
+        color: typing.Tuple[int, int, int] = (255, 255, 255),
+    ):
+        self.position = position
+        self.blink_speed = 500  # ms
+        self.size = size
+        self.color = color
+        self._visible = True
+        self._blink_timer = 0
+        self._blink_speed = 500  # ms
+
+    def update(self, dt: int):
+        self._blink_timer += dt
+        if self._blink_timer >= self._blink_speed:
+            self._visible = not self._visible
+            self._blink_timer = 0
+
+    def draw(self, screen: pygame.Surface):
+        if self._visible:
+            pygame.draw.rect(
+                screen,
+                self.color,
+                (
+                    self.position[0] * self.size[0],
+                    self.position[1] * self.size[1],
+                    self.size[0],
+                    self.size[1],
+                ),
+            )
+
+
 class TerminalInterface(pygame.Surface):
     def __init__(
         self, screen_size: typing.Tuple[int, int], terminal_size: typing.Tuple[int, int]
@@ -13,17 +48,10 @@ class TerminalInterface(pygame.Surface):
         self.terminal_matrix = [
             [" " for _ in range(terminal_size[0])] for _ in range(terminal_size[1])
         ]
-        self.cursor_position = (0, 0)
-        self.cursor_blink_speed = 500  # ms
-        self._cursor_blink_timer = 0
-        self._cursor_visible = True
+        self.cursor = Cursor((0, 0), (self.font.size(" ")[0], self.font.size(" ")[1]))
 
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
-        # Blink cursor
-        self._cursor_blink_timer += dt
-        if self._cursor_blink_timer >= self.cursor_blink_speed:
-            self._cursor_visible = not self._cursor_visible
-            self._cursor_blink_timer = 0
+        self.cursor.update(dt)
 
     def draw(self, screen: pygame.Surface):
         # TODO: Add scrollbars
@@ -36,37 +64,23 @@ class TerminalInterface(pygame.Surface):
                 char_width, char_height = self.font.size(char)
                 self.blit(char_surface, (x * char_width, y * char_height))
 
-        if self._cursor_visible:
-            self.draw_cursor(screen)
+        self.cursor.draw(self)
 
         screen.blit(self, (0, 0))
 
-    def draw_cursor(self, screen: pygame.Surface):
-        print(self.cursor_position)
-        pygame.draw.rect(
-            self,
-            (0, 255, 255),
-            (
-                self.cursor_position[0] * self.font.size(" ")[0],
-                self.cursor_position[1] * self.font.size(" ")[1],
-                self.font.size(" ")[0],
-                self.font.size(" ")[1],
-            ),
-        )
-
     def write(self, char: str):
-        self.terminal_matrix[self.cursor_position[1]][self.cursor_position[0]] = char
-        self.cursor_position = (self.cursor_position[0] + 1, self.cursor_position[1])
+        self.terminal_matrix[self.cursor.position[1]][self.cursor.position[0]] = char
+        self.cursor.position = (self.cursor.position[0] + 1, self.cursor.position[1])
 
         # Wrap text
-        if self.cursor_position[0] >= len(
-            self.terminal_matrix[self.cursor_position[1]]
+        if self.cursor.position[0] >= len(
+            self.terminal_matrix[self.cursor.position[1]]
         ):
-            self.cursor_position = (0, self.cursor_position[1] + 1)
+            self.cursor.position = (0, self.cursor.position[1] + 1)
 
         # Move to next line
-        if self.cursor_position[1] >= len(self.terminal_matrix):
-            self.cursor_position = (0, 0)
+        if self.cursor.position[1] >= len(self.terminal_matrix):
+            self.cursor.position = (0, 0)
 
     def act(self, actions: typing.List[InterfaceAction]):
         for action in actions:
