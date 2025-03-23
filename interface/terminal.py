@@ -63,7 +63,7 @@ class TerminalInterface(pygame.Surface):
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
         self.cursor.update(dt)
 
-        for action in self.change_history[self.history_index:]:
+        for action in self.change_history[self.history_index :]:
             self.history_index += 1
             action.act()
 

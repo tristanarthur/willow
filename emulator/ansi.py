@@ -24,11 +24,8 @@ class ControlSequenceIntroducerType(EscapeSequenceNames):
     DSR = "Device Status Report"
 
 
-
-
 class AnsiEscape:
-
-    def __init__(self, data: bytes=b""):
+    def __init__(self, data: bytes = b""):
         self.data = data
         self._prefix = None
         self.parameters = []
@@ -52,7 +49,7 @@ class ControlSequenceIntroducer(AnsiEscape):
         "J": ControlSequenceIntroducerType.ED,
     }
 
-    def __init__(self, data: bytes=b""):
+    def __init__(self, data: bytes = b""):
         super().__init__(data)
 
     def parse(self, char: bytes) -> typing.Optional[EscapeSequenceNames]:
@@ -86,12 +83,14 @@ IGNORE_ESCAPES = [
     b"\x97",
 ]
 
-ANSI_PREFIX = { 
+ANSI_PREFIX = {
     ESCAPES[0] + b"[": ControlSequenceIntroducer,
 }
 
+
 def should_start_escape(char: bytes) -> bool:
     return char in ESCAPES
+
 
 def should_ignore_escape(char: bytes) -> bool:
     return char in IGNORE_ESCAPES
@@ -104,5 +103,3 @@ def parse_escape(escape: AnsiEscape, char: bytes) -> AnsiEscape:
         if new_escape_type:
             return new_escape_type(escape.data)
     return escape
-    
-    

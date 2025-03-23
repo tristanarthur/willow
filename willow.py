@@ -79,7 +79,9 @@ class Willow:
                     action_type = escape_to_action.get(current_escape.name)
                     if action_type:
                         actions.append(
-                            action_type(self.terminal_interface, current_escape.parameters)
+                            action_type(
+                                self.terminal_interface, current_escape.parameters
+                            )
                         )
                     current_escape = None
             else:

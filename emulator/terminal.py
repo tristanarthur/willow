@@ -17,15 +17,13 @@ LOGGER.addHandler(logging.StreamHandler())
 class TerminalEmulator:
     # Heavily inspired by https://github.com/smstong/pyterm
 
-    SHELL = os.environ.get("S", "/bin/sh")
+    SHELL = os.environ.get("SHELL", "/bin/sh")
 
     def __init__(self):
         self.queue = Queue()
         self.pid, self.parent_fd = pty.fork()
         self.running = True
-        LOGGER.info(f"Forked process {self.pid}")
         if self.pid == 0:
-            LOGGER.info(f"Starting shell process {TerminalEmulator.SHELL}")
             os.execvp(TerminalEmulator.SHELL, (TerminalEmulator.SHELL,))
         else:
             self.read_thread = threading.Thread(

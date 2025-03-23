@@ -7,7 +7,9 @@ ActionArguments = typing.Tuple[typing.Any, ...]
 
 
 class InterfaceAction(ABC):
-    def __init__(self, terminal_interface: "TerminalInterface", args: ActionArguments=()):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", args: ActionArguments = ()
+    ):
         self.interface = terminal_interface
         self.args = args
 
@@ -17,12 +19,15 @@ class InterfaceAction(ABC):
 
 
 class RenderAction(InterfaceAction):
-    def __init__(self, terminal_interface: "TerminalInterface", args: ActionArguments=()):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", args: ActionArguments = ()
+    ):
         super().__init__(terminal_interface, args)
 
     @abstractmethod
     def act(self, surface: pygame.Surface) -> None:
         pass
+
 
 class CharacterRenderAction(RenderAction):
     def __init__(
@@ -40,27 +45,36 @@ class CharacterRenderAction(RenderAction):
         self.background_color = background_color
 
     def act(self, surface: pygame.Surface):
-        char_surface = self.font.render(self.character, False, self.foreground_color, self.background_color)
+        char_surface = self.font.render(
+            self.character, False, self.foreground_color, self.background_color
+        )
         char_width, char_height = self.font.size(self.character)
-        surface.blit(char_surface, (self.position[0] * char_width, self.position[1] * char_height))
+        surface.blit(
+            char_surface,
+            (self.position[0] * char_width, self.position[1] * char_height),
+        )
 
 
 class InsertCharacterAction(InterfaceAction):
-    def __init__(self, terminal_interface: "TerminalInterface", args: ActionArguments=()):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", args: ActionArguments = ()
+    ):
         super().__init__(terminal_interface, args)
 
     def validate(self):
         if len(self.args) != 1 and not isinstance(self.args[0], str):
-            raise ValueError("InsertCharacterAction must have exactly one string argument")
+            raise ValueError(
+                "InsertCharacterAction must have exactly one string argument"
+            )
 
     def act(self):
         self.interface.renders.append(
             CharacterRenderAction(
-                self.args[0], 
+                self.args[0],
                 self.interface.font,
-                self.interface.cursor.position, 
-                self.interface.foreground_color, 
-                self.interface.background_color
+                self.interface.cursor.position,
+                self.interface.foreground_color,
+                self.interface.background_color,
             )
         )
         MoveCursorAction.forward(self.interface, (1,)).act()
@@ -70,14 +84,13 @@ class MoveCursorAction(InterfaceAction):
     def __init__(
         self,
         terminal_interface: "TerminalInterface",
-        args: ActionArguments=(),
+        args: ActionArguments = (),
         x_is_relative: bool = True,
         y_is_relative: bool = True,
     ):
         super().__init__(terminal_interface, args)
         self.x_is_relative = x_is_relative
         self.y_is_relative = y_is_relative
-
 
     def act(self):
         x = self.interface.cursor.position[0]
@@ -99,10 +112,14 @@ class MoveCursorAction(InterfaceAction):
 
     @staticmethod
     def to_position(
-        terminal_interface: "TerminalInterface", position: ActionArguments = (1, 1,)
+        terminal_interface: "TerminalInterface",
+        position: ActionArguments = (
+            1,
+            1,
+        ),
     ):
         return MoveCursorAction(terminal_interface, position, False, False)
-    
+
     @staticmethod
     def up(terminal_interface: "TerminalInterface", n: ActionArguments = (1,)):
         return MoveCursorAction(terminal_interface, (0, int(-n[0])), True, True)
@@ -124,16 +141,22 @@ class MoveCursorAction(InterfaceAction):
         return MoveCursorAction(terminal_interface, (0, int(n[0])), False, True)
 
     @staticmethod
-    def previous_line(terminal_interface: "TerminalInterface", n: ActionArguments = (1,)):
+    def previous_line(
+        terminal_interface: "TerminalInterface", n: ActionArguments = (1,)
+    ):
         return MoveCursorAction(terminal_interface, (0, int(-n[0])), False, True)
 
     @staticmethod
-    def horizontal_absolute(terminal_interface: "TerminalInterface", x: ActionArguments = (1,)):
+    def horizontal_absolute(
+        terminal_interface: "TerminalInterface", x: ActionArguments = (1,)
+    ):
         return MoveCursorAction(terminal_interface, (int(x[0]), 0), False, True)
 
 
 class DoNothingAction(InterfaceAction):
-    def __init__(self, terminal_interface: "TerminalInterface", args: ActionArguments=()):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", args: ActionArguments = ()
+    ):
         super().__init__(terminal_interface, args)
 
     def act(self):
