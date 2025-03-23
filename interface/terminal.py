@@ -1,6 +1,6 @@
 import pygame
 import typing
-from interface.actions import InterfaceAction
+from interface.actions import InterfaceAction, RenderAction
 
 
 class Cursor:
@@ -11,16 +11,15 @@ class Cursor:
         color: typing.Tuple[int, int, int] = (255, 255, 255),
     ):
         self.position = position
-        self.blink_speed = 500  # ms
         self.size = size
         self.color = color
         self._visible = True
         self._blink_timer = 0
-        self._blink_speed = 500  # ms
+        self._blink_speed = 500  # ms  Set 0 for no blink
 
     def update(self, dt: int):
         self._blink_timer += dt
-        if self._blink_timer >= self._blink_speed:
+        if self._blink_speed > 0 and self._blink_timer >= self._blink_speed:
             self._visible = not self._visible
             self._blink_timer = 0
 
@@ -44,44 +43,38 @@ class TerminalInterface(pygame.Surface):
     ):
         super().__init__(screen_size)
         self.font = pygame.font.SysFont("Monaco", 12)
-        # TODO Change this to enable variable column and row sizes
-        self.terminal_matrix = [
-            [" " for _ in range(terminal_size[0])] for _ in range(terminal_size[1])
-        ]
+
+        # Run once
+        self.change_history: typing.List[InterfaceAction] = []
+        self.history_index = 0
+
+        # Run every draw frame
+        self.renders: typing.List[RenderAction] = []
+
+        self.terminal_size = terminal_size
+        self.foreground_color = (255, 255, 255)
+        self.background_color = (0, 0, 0)
+
+        self.on_draw = []
+        self.on_update = []
+
         self.cursor = Cursor((0, 0), (self.font.size(" ")[0], self.font.size(" ")[1]))
 
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
         self.cursor.update(dt)
+
+        for action in self.change_history[self.history_index:]:
+            self.history_index += 1
+            action.act()
 
     def draw(self, screen: pygame.Surface):
         # TODO: Add scrollbars
 
         self.fill((0, 0, 0))
 
-        for y, row in enumerate(self.terminal_matrix):
-            for x, char in enumerate(row):
-                char_surface = self.font.render(char, False, (255, 255, 255))
-                char_width, char_height = self.font.size(char)
-                self.blit(char_surface, (x * char_width, y * char_height))
+        for render in self.renders:
+            render.act(self)
 
         self.cursor.draw(self)
 
         screen.blit(self, (0, 0))
-
-    def write(self, char: str):
-        self.terminal_matrix[self.cursor.position[1]][self.cursor.position[0]] = char
-        self.cursor.position = (self.cursor.position[0] + 1, self.cursor.position[1])
-
-        # Wrap text
-        if self.cursor.position[0] >= len(
-            self.terminal_matrix[self.cursor.position[1]]
-        ):
-            self.cursor.position = (0, self.cursor.position[1] + 1)
-
-        # Move to next line
-        if self.cursor.position[1] >= len(self.terminal_matrix):
-            self.cursor.position = (0, 0)
-
-    def act(self, actions: typing.List[InterfaceAction]):
-        for action in actions:
-            action.act()

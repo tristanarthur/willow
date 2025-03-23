@@ -61,32 +61,34 @@ class Willow:
 
     def send_actions_to_interface(self, dt: int, _: typing.List[event.Event]) -> None:
         actions = self._convert_bytes_to_actions(self.terminal_output)
-        self.terminal_interface.act(actions)
+        self.terminal_interface.change_history.extend(actions)
         # Clear buffer once written
         self.terminal_output = []
 
     def _convert_bytes_to_actions(self, bytes: bytes) -> typing.List[InterfaceAction]:
         actions = []
-        current_escape = None
-        for char in self.terminal_output:
-            if char in (
-                b"\x1b",
-                b"\x08",
-                b"\r",
-                b"\x9e",
-                b"\x07",
-                b"\x97",
-                b"\x9c",
-                b"\xe2",
-            ):
-                pass
+        current_escape: typing.Optional[AnsiEscape] = None
+        for char in bytes:
+            if should_ignore_escape(char):
+                continue
+            if not current_escape and should_start_escape(char):
+                current_escape = parse_escape(AnsiEscape(), char)
             elif current_escape:
-                current_escape.process(char)
+                current_escape = parse_escape(current_escape, char)
                 if current_escape.finished:
-                    actions.append(current_escape.action)
+                    action_type = escape_to_action.get(current_escape.name)
+                    if action_type:
+                        actions.append(
+                            action_type(self.terminal_interface, current_escape.parameters)
+                        )
                     current_escape = None
             else:
-                actions.append(InsertCharacterAction(self.terminal_interface, char))
+                # Handle new lines
+                if char == b"\n":
+                    actions.append(
+                        MoveCursorAction.next_line(self.terminal_interface, (1,))
+                    )
+                actions.append(InsertCharacterAction(self.terminal_interface, (char,)))
         return actions
 
 

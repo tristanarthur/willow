@@ -17,7 +17,7 @@ LOGGER.addHandler(logging.StreamHandler())
 class TerminalEmulator:
     # Heavily inspired by https://github.com/smstong/pyterm
 
-    SHELL = os.environ.get("SHELL", "/bin/sh")
+    SHELL = os.environ.get("S", "/bin/sh")
 
     def __init__(self):
         self.queue = Queue()
