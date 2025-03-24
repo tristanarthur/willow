@@ -3,6 +3,7 @@ import typing
 import pygame
 import stransi
 from dataclasses import dataclass
+from ochre import Color
 
 
 
@@ -68,13 +69,18 @@ class InsertCharacterAction(InterfaceAction):
     ):
         super().__init__(terminal_interface, instruction)
 
-    def validate(self):
-        if len(self.instruction.args) != 1 and not isinstance(self.instruction.args[0], str):
-            raise ValueError(
-                "InsertCharacterAction must have exactly one string argument"
-            )
+    def _handle_newline(self):
+        move_cursor_instruction = stransi.cursor.SetCursor(
+            move=stransi.cursor.CursorMove.to(0, self.interface.cursor.position[1] + 1)
+        )
+        MoveCursorAction(self.interface, move_cursor_instruction).act()
+
 
     def act(self):
+        if self.instruction.character == '\n':
+            self._handle_newline()
+            return
+        
         self.interface.renders.append(
             CharacterRenderAction(
                 self.instruction.character,
@@ -119,6 +125,19 @@ class MoveCursorAction(InterfaceAction):
 
         self.interface.cursor.position = (x, y)
 
+class SetColorAction(InterfaceAction):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", instruction: stransi.color.Instruction
+    ):
+        super().__init__(terminal_interface, instruction)
+
+    def act(self):
+        if self.instruction.role == stransi.color.ColorRole.FOREGROUND:
+            foreground_color = [int(channel * 255) for channel in self.instruction.color.rgb]
+            self.interface.foreground_color = tuple(foreground_color)
+        elif self.instruction.role == stransi.color.ColorRole.BACKGROUND:
+            background_color = [int(channel * 255) for channel in self.instruction.color.rgb]
+            self.interface.background_color = tuple(background_color)
 
 class DoNothingAction(InterfaceAction):
     def __init__(

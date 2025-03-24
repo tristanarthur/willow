@@ -10,7 +10,8 @@ import stransi
 
 
 instruction_to_action = {
-    stransi.cursor.Instruction: MoveCursorAction,
+    stransi.cursor.SetCursor: MoveCursorAction,
+    stransi.color.SetColor: SetColorAction,
 }
 
 
@@ -70,6 +71,8 @@ class Willow:
         actions = []
 
         byte_str = bytes.join(b'', data)
+        #print("byte_str", byte_str)
+        #print("byte_str", byte_str.decode("unicode_escape"))
 
         ansi = stransi.Ansi(byte_str.decode("unicode_escape"))
         for instruction in ansi.instructions():
@@ -77,7 +80,7 @@ class Willow:
             if type(instruction) is str:
                 instructions = [InsertCharacterInstruction(character) for character in instruction]
                 actions.extend([InsertCharacterAction(self.terminal_interface, instruction) for instruction in instructions])
-            elif type(instruction) is stransi.instruction.Instruction:
+            else:
                 action = instruction_to_action.get(type(instruction))
                 if action:
                     actions.append(action(self.terminal_interface, instruction))
