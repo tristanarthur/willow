@@ -38,6 +38,10 @@ class Cursor:
 
 
 class TerminalInterface(pygame.Surface):
+
+    DEFAULT_FOREGROUND_COLOR = (255, 255, 255)
+    DEFAULT_BACKGROUND_COLOR = (0, 0, 0)
+
     def __init__(
         self, screen_size: typing.Tuple[int, int], terminal_size: typing.Tuple[int, int]
     ):
@@ -52,8 +56,11 @@ class TerminalInterface(pygame.Surface):
         self.renders: typing.List[RenderAction] = []
 
         self.terminal_size = terminal_size
-        self.foreground_color = (255, 255, 255)
-        self.background_color = (0, 0, 0)
+        self.foreground_color = self.DEFAULT_FOREGROUND_COLOR
+        self.background_color = self.DEFAULT_BACKGROUND_COLOR
+        self.bold = False
+        self.italic = False
+        self.underline = False
 
         self.on_draw = []
         self.on_update = []

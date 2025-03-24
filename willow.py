@@ -12,6 +12,7 @@ import stransi
 instruction_to_action = {
     stransi.cursor.SetCursor: MoveCursorAction,
     stransi.color.SetColor: SetColorAction,
+    stransi.attribute.SetAttribute: SetAttributeAction,
 }
 
 

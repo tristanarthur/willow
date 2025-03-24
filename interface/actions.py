@@ -77,6 +77,7 @@ class InsertCharacterAction(InterfaceAction):
 
 
     def act(self):
+        self.instruction: InsertCharacterInstruction
         if self.instruction.character == '\n':
             self._handle_newline()
             return
@@ -104,12 +105,13 @@ class MoveCursorAction(InterfaceAction):
     def __init__(
         self,
         terminal_interface: "TerminalInterface",
-        instruction: stransi.cursor.Instruction,
+        instruction: stransi.cursor.SetCursor,
     ):
         super().__init__(terminal_interface, instruction)
 
 
     def act(self):
+        self.instruction: stransi.cursor.SetCursor
         x = self.interface.cursor.position[0]
         y = self.interface.cursor.position[1]
         if self.instruction.move.relative:
@@ -127,17 +129,33 @@ class MoveCursorAction(InterfaceAction):
 
 class SetColorAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.color.Instruction
+        self, terminal_interface: "TerminalInterface", instruction: stransi.color.SetColor
     ):
         super().__init__(terminal_interface, instruction)
 
     def act(self):
+        self.instruction: stransi.color.SetColor
         if self.instruction.role == stransi.color.ColorRole.FOREGROUND:
             foreground_color = [int(channel * 255) for channel in self.instruction.color.rgb]
             self.interface.foreground_color = tuple(foreground_color)
         elif self.instruction.role == stransi.color.ColorRole.BACKGROUND:
             background_color = [int(channel * 255) for channel in self.instruction.color.rgb]
             self.interface.background_color = tuple(background_color)
+
+class SetAttributeAction(InterfaceAction):
+    def __init__(
+        self, terminal_interface: "TerminalInterface", instruction: stransi.attribute.SetAttribute
+    ):
+        super().__init__(terminal_interface, instruction)
+
+    def act(self):
+        self.instruction: stransi.attribute.SetAttribute
+        if self.instruction.attribute is stransi.attribute.Attribute.NORMAL:
+            self.interface.bold = False
+            self.interface.italic = False
+            self.interface.underline = False
+            self.interface.foreground_color = self.interface.DEFAULT_FOREGROUND_COLOR
+            self.interface.background_color = self.interface.DEFAULT_BACKGROUND_COLOR
 
 class DoNothingAction(InterfaceAction):
     def __init__(
