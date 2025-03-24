@@ -55,9 +55,9 @@ class Willow:
         for event in events:
             if event.type == KEYDOWN:
                 if event.key == K_RETURN:
-                    self.terminal.write('\n')
+                    self.terminal.write("\n")
                 elif event.key == K_BACKSPACE:
-                    self.terminal.write('\b')
+                    self.terminal.write("\b")
                 else:
                     self.terminal.write(event.unicode)
 
@@ -68,19 +68,28 @@ class Willow:
             # Clear buffer once written
             self.terminal_output = []
 
-    def _convert_bytes_to_actions(self, data: typing.List[bytes]) -> typing.List[InterfaceAction]:
+    def _convert_bytes_to_actions(
+        self, data: typing.List[bytes]
+    ) -> typing.List[InterfaceAction]:
         actions = []
 
-        byte_str = bytes.join(b'', data)
-        #print("byte_str", byte_str)
-        #print("byte_str", byte_str.decode("unicode_escape"))
+        byte_str = bytes.join(b"", data)
+        # print("byte_str", byte_str)
+        # print("byte_str", byte_str.decode("unicode_escape"))
 
         ansi = stransi.Ansi(byte_str.decode("unicode_escape"))
         for instruction in ansi.instructions():
             print("instruction", instruction)
             if type(instruction) is str:
-                instructions = [InsertCharacterInstruction(character) for character in instruction]
-                actions.extend([InsertCharacterAction(self.terminal_interface, instruction) for instruction in instructions])
+                instructions = [
+                    InsertCharacterInstruction(character) for character in instruction
+                ]
+                actions.extend(
+                    [
+                        InsertCharacterAction(self.terminal_interface, instruction)
+                        for instruction in instructions
+                    ]
+                )
             else:
                 action = instruction_to_action.get(type(instruction))
                 if action:

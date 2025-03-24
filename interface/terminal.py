@@ -38,7 +38,6 @@ class Cursor:
 
 
 class TerminalInterface(pygame.Surface):
-
     DEFAULT_FOREGROUND_COLOR = (255, 255, 255)
     DEFAULT_BACKGROUND_COLOR = (0, 0, 0)
 

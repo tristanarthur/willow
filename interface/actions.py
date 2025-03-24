@@ -6,13 +6,14 @@ from dataclasses import dataclass
 from ochre import Color
 
 
-
 ActionArguments = typing.Tuple[typing.Any, ...]
 
 
 class InterfaceAction(ABC):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.instruction.Instruction
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: stransi.instruction.Instruction,
     ):
         self.interface = terminal_interface
         self.instruction = instruction
@@ -24,7 +25,9 @@ class InterfaceAction(ABC):
 
 class RenderAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.instruction.Instruction
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: stransi.instruction.Instruction,
     ):
         super().__init__(terminal_interface, instruction)
 
@@ -58,6 +61,7 @@ class CharacterRenderAction(RenderAction):
             (self.position[0] * char_width, self.position[1] * char_height),
         )
 
+
 @dataclass
 class InsertCharacterInstruction(stransi.instruction.Instruction):
     character: str
@@ -65,7 +69,9 @@ class InsertCharacterInstruction(stransi.instruction.Instruction):
 
 class InsertCharacterAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: InsertCharacterInstruction
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: InsertCharacterInstruction,
     ):
         super().__init__(terminal_interface, instruction)
 
@@ -75,13 +81,12 @@ class InsertCharacterAction(InterfaceAction):
         )
         MoveCursorAction(self.interface, move_cursor_instruction).act()
 
-
     def act(self):
         self.instruction: InsertCharacterInstruction
-        if self.instruction.character == '\n':
+        if self.instruction.character == "\n":
             self._handle_newline()
             return
-        
+
         self.interface.renders.append(
             CharacterRenderAction(
                 self.instruction.character,
@@ -109,7 +114,6 @@ class MoveCursorAction(InterfaceAction):
     ):
         super().__init__(terminal_interface, instruction)
 
-
     def act(self):
         self.instruction: stransi.cursor.SetCursor
         x = self.interface.cursor.position[0]
@@ -127,24 +131,34 @@ class MoveCursorAction(InterfaceAction):
 
         self.interface.cursor.position = (x, y)
 
+
 class SetColorAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.color.SetColor
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: stransi.color.SetColor,
     ):
         super().__init__(terminal_interface, instruction)
 
     def act(self):
         self.instruction: stransi.color.SetColor
         if self.instruction.role == stransi.color.ColorRole.FOREGROUND:
-            foreground_color = [int(channel * 255) for channel in self.instruction.color.rgb]
+            foreground_color = [
+                int(channel * 255) for channel in self.instruction.color.rgb
+            ]
             self.interface.foreground_color = tuple(foreground_color)
         elif self.instruction.role == stransi.color.ColorRole.BACKGROUND:
-            background_color = [int(channel * 255) for channel in self.instruction.color.rgb]
+            background_color = [
+                int(channel * 255) for channel in self.instruction.color.rgb
+            ]
             self.interface.background_color = tuple(background_color)
+
 
 class SetAttributeAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.attribute.SetAttribute
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: stransi.attribute.SetAttribute,
     ):
         super().__init__(terminal_interface, instruction)
 
@@ -157,9 +171,12 @@ class SetAttributeAction(InterfaceAction):
             self.interface.foreground_color = self.interface.DEFAULT_FOREGROUND_COLOR
             self.interface.background_color = self.interface.DEFAULT_BACKGROUND_COLOR
 
+
 class DoNothingAction(InterfaceAction):
     def __init__(
-        self, terminal_interface: "TerminalInterface", instruction: stransi.instruction.Instruction
+        self,
+        terminal_interface: "TerminalInterface",
+        instruction: stransi.instruction.Instruction,
     ):
         super().__init__(terminal_interface, instruction)
 
