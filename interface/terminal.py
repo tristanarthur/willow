@@ -67,7 +67,9 @@ class TerminalInterface(pygame.Surface):
         self.on_draw = []
         self.on_update = []
 
-        self.cursor = Cursor((0, 0), (self.font.get_rect(" ").width, self.font.get_rect(" ").height))
+        self.cursor = Cursor(
+            (0, 0), (self.font.get_rect(" ").width, self.font.get_rect(" ").height)
+        )
 
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
         self.cursor.update(dt)

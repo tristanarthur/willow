@@ -74,12 +74,10 @@ class Willow:
         actions = []
 
         byte_str = bytes.join(b"", data)
-        # print("byte_str", byte_str)
-        # print("byte_str", byte_str.decode("unicode_escape"))
 
         ansi = stransi.Ansi(byte_str.decode("unicode_escape"))
         for instruction in ansi.instructions():
-            print("instruction", instruction)
+            # print("instruction", instruction)
             if type(instruction) is str:
                 instructions = [
                     InsertCharacterInstruction(character) for character in instruction

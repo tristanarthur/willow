@@ -4,7 +4,6 @@ import pygame
 import pygame.freetype
 import stransi
 from dataclasses import dataclass
-from ochre import Color
 
 
 ActionArguments = typing.Tuple[typing.Any, ...]
@@ -38,7 +37,6 @@ class RenderAction(InterfaceAction):
 
 
 class CharacterRenderAction(RenderAction):
-
     def __init__(
         self,
         terminal_interface: "TerminalInterface",
@@ -54,7 +52,7 @@ class CharacterRenderAction(RenderAction):
         self.position = position
         self.position = (
             self.position[0] * self.font.get_rect(" ").width,
-            self.position[1] * self.font.get_sized_height(12)
+            self.position[1] * self.font.get_sized_height(12),
         )
         self.foreground_color = foreground_color
         self.background_color = background_color

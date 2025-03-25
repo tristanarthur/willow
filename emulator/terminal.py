@@ -66,10 +66,3 @@ class TerminalEmulator:
         LOGGER.info("Terminal Emulator is exiting")
         shutdown_event.set()
         self.read_thread.join(timeout=1.0)
-
-
-# terminal = TerminalEmulator()
-# terminal.write("ls\n")
-
-# while terminal.queue.qsize != 0:
-#    print(terminal.queue.get())
