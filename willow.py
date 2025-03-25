@@ -4,7 +4,6 @@ from emulator.terminal import TerminalEmulator
 from pygame import *
 from interface.terminal import TerminalInterface
 from interface.actions import *
-from emulator.ansi import *
 import typing
 import stransi
 
