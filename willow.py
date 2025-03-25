@@ -1,10 +1,17 @@
 import stransi.instruction
 from interface.window import Window
 from emulator.terminal import TerminalEmulator
-from pygame import *
 from interface.terminal import TerminalInterface
-from interface.actions import *
+from interface.actions import (
+    MoveCursorAction,
+    SetColorAction,
+    SetAttributeAction,
+    InsertCharacterAction,
+    InsertCharacterInstruction,
+    InterfaceAction,
+)
 import typing
+import pygame
 import stransi
 
 
@@ -47,20 +54,24 @@ class Willow:
     def register_exit(self) -> None:
         self.window.on_exit.append(self.terminal.exit)
 
-    def read_terminal_output(self, dt: int, _: typing.List[event.Event]) -> None:
+    def read_terminal_output(self, dt: int, _: typing.List[pygame.event.Event]) -> None:
         self.terminal_output.extend(self.terminal.read_all())
 
-    def send_input_to_terminal(self, _: int, events: typing.List[event.Event]) -> None:
+    def send_input_to_terminal(
+        self, _: int, events: typing.List[pygame.event.Event]
+    ) -> None:
         for event in events:
-            if event.type == KEYDOWN:
-                if event.key == K_RETURN:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
                     self.terminal.write("\n")
-                elif event.key == K_BACKSPACE:
+                elif event.key == pygame.K_BACKSPACE:
                     self.terminal.write("\b")
                 else:
                     self.terminal.write(event.unicode)
 
-    def send_actions_to_interface(self, dt: int, _: typing.List[event.Event]) -> None:
+    def send_actions_to_interface(
+        self, dt: int, _: typing.List[pygame.event.Event]
+    ) -> None:
         if self.terminal_output:
             actions = self._convert_bytes_to_actions(self.terminal_output)
             self.terminal_interface.change_history.extend(actions)
