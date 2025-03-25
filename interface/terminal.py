@@ -1,5 +1,7 @@
 import pygame
 import typing
+
+import pygame.freetype
 from interface.actions import InterfaceAction, RenderAction
 
 
@@ -45,7 +47,8 @@ class TerminalInterface(pygame.Surface):
         self, screen_size: typing.Tuple[int, int], terminal_size: typing.Tuple[int, int]
     ):
         super().__init__(screen_size)
-        self.font = pygame.font.SysFont("Monaco", 12)
+        self.font = pygame.freetype.SysFont("Monaco", 12)
+        self.font.origin = True
 
         # Run once
         self.change_history: typing.List[InterfaceAction] = []
@@ -64,7 +67,7 @@ class TerminalInterface(pygame.Surface):
         self.on_draw = []
         self.on_update = []
 
-        self.cursor = Cursor((0, 0), (self.font.size(" ")[0], self.font.size(" ")[1]))
+        self.cursor = Cursor((0, 0), (self.font.get_rect(" ").width, self.font.get_rect(" ").height))
 
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
         self.cursor.update(dt)
@@ -78,8 +81,15 @@ class TerminalInterface(pygame.Surface):
 
         self.fill((0, 0, 0))
 
+        if self.bold:
+            self.font.set_bold(True)
+        if self.italic:
+            self.font.set_italic(True)
+        if self.underline:
+            self.font.set_underline(True)
+
         for render in self.renders:
-            render.act(self)
+            render.act()
 
         self.cursor.draw(self)
 

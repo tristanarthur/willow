@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import typing
 import pygame
+import pygame.freetype
 import stransi
 from dataclasses import dataclass
 from ochre import Color
@@ -37,28 +38,42 @@ class RenderAction(InterfaceAction):
 
 
 class CharacterRenderAction(RenderAction):
+
     def __init__(
         self,
+        terminal_interface: "TerminalInterface",
         character: str,
-        font: pygame.font.Font,
+        font: pygame.freetype.Font,
         position: typing.Tuple[int, int],
         foreground_color: typing.Tuple[int, int, int],
         background_color: typing.Tuple[int, int, int],
     ):
+        super().__init__(terminal_interface, character)
         self.character = character
         self.font = font
         self.position = position
+        self.position = (
+            self.position[0] * self.font.get_rect(" ").width,
+            self.position[1] * self.font.get_sized_height(12)
+        )
         self.foreground_color = foreground_color
         self.background_color = background_color
 
-    def act(self, surface: pygame.Surface):
-        char_surface = self.font.render(
-            self.character, False, self.foreground_color, self.background_color
-        )
-        char_width, char_height = self.font.size(self.character)
-        surface.blit(
-            char_surface,
-            (self.position[0] * char_width, self.position[1] * char_height),
+    def act(self):
+        style = pygame.freetype.STYLE_NORMAL
+        if self.interface.bold:
+            style = pygame.freetype.STYLE_STRONG
+        if self.interface.italic:
+            style = pygame.freetype.STYLE_OBLIQUE
+        if self.interface.underline:
+            style = pygame.freetype.STYLE_UNDERLINE
+        self.font.render_to(
+            surf=self.interface,
+            dest=self.position,
+            text=self.character,
+            fgcolor=self.foreground_color,
+            bgcolor=self.background_color,
+            style=style,
         )
 
 
@@ -83,12 +98,15 @@ class InsertCharacterAction(InterfaceAction):
 
     def act(self):
         self.instruction: InsertCharacterInstruction
+        if self.instruction.character.encode("utf-8") == b"\x07":
+            return
         if self.instruction.character == "\n":
             self._handle_newline()
             return
 
         self.interface.renders.append(
             CharacterRenderAction(
+                self.interface,
                 self.instruction.character,
                 self.interface.font,
                 self.interface.cursor.position,
@@ -170,6 +188,12 @@ class SetAttributeAction(InterfaceAction):
             self.interface.underline = False
             self.interface.foreground_color = self.interface.DEFAULT_FOREGROUND_COLOR
             self.interface.background_color = self.interface.DEFAULT_BACKGROUND_COLOR
+        elif self.instruction.attribute is stransi.attribute.Attribute.BOLD:
+            self.interface.bold = True
+        elif self.instruction.attribute is stransi.attribute.Attribute.ITALIC:
+            self.interface.italic = True
+        elif self.instruction.attribute is stransi.attribute.Attribute.UNDERLINE:
+            self.interface.underline = True
 
 
 class DoNothingAction(InterfaceAction):

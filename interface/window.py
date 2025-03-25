@@ -8,7 +8,7 @@ class Window:
 
     def __init__(self):
         pygame.init()
-        pygame.font.init()
+        pygame.freetype.init()
         self.clock = pygame.time.Clock()
         # TODO: Make resizable
         # TODO: Save window size to cache and reload on program start
