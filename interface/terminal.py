@@ -85,13 +85,6 @@ class TerminalInterface(pygame.Surface):
 
         self.fill((0, 0, 0))
 
-        if self.bold:
-            self.font.set_bold(True)
-        if self.italic:
-            self.font.set_italic(True)
-        if self.underline:
-            self.font.set_underline(True)
-
         for render in self.renders:
             render.act()
 
