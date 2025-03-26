@@ -57,6 +57,8 @@ class TerminalInterface(pygame.Surface):
         # Run every draw frame
         self.renders: typing.List[RenderAction] = []
 
+        self.scroll_offset = 0
+
         self.terminal_size = terminal_size
         self.foreground_color = self.DEFAULT_FOREGROUND_COLOR
         self.background_color = self.DEFAULT_BACKGROUND_COLOR
@@ -68,7 +70,7 @@ class TerminalInterface(pygame.Surface):
         self.on_update = []
 
         self.cursor = Cursor(
-            (0, 0), (self.font.get_rect(" ").width, self.font.get_rect(" ").height)
+            (0, 0), (self.font.get_rect(" ").width, self.font.get_sized_height(12))
         )
 
     def update(self, dt: int, events: typing.List[pygame.event.Event]):
